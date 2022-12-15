@@ -1,0 +1,45 @@
+﻿@using BlazorApp1.Shared
+@page "/huita"
+@inject HttpClient Http
+
+<h1>Your Shopping List</h1>
+<input id="product_name" @bind-value=product.ProductName placeholder="Enter the title of product">
+<button id="add-product" @onclick=AddProduct>Add new product</button>
+
+<div id="products">
+@foreach (Product t in products)
+{
+    <div id="product">
+        <p>@t.Name</p>
+        <input type="checkbox" value=@t?.IsBought @onclick=@(_ => PutProduct(t))>
+        <button id="delete-product" @onclick=@(_ => DeleteProduct(t))>Delete</button>
+    </div>
+}
+</div>
+
+
+@code {
+    private static ProductForm product = new();
+    private List<Product> products = new();
+
+    private async Task AddProduct()
+    {
+        Console.WriteLine(product.ProductName);
+        await Http.PostAsJsonAsync("/add", product);
+        products = await Http.GetFromJsonAsync<List<Product>>("/add");
+        Console.WriteLine(products.Count > 0 ? products.ToString() : "no products uga buga");
+        StateHasChanged();
+    }
+
+    private async Task DeleteProduct(Product product)
+    {
+        await Http.DeleteAsync("/" + product.Id);
+        products = await Http.GetFromJsonAsync<List<Product>>("/add");
+        StateHasChanged();
+    }
+
+    private async Task PutProduct(Product product)
+    {
+        await Http.PutAsync("/" + product.Id, null);
+    }
+}
